@@ -21,12 +21,14 @@ from .stream_reader import discover_jsonl_parts, discover_partitions, load_statu
 mcp = FastMCP(
     name="datacite-librarian",
     instructions=(
-        "DataCite Librarian MCP — local, stream-first tools over monthly/public datafiles "
-        "for repository QA, funder compliance, index analytics, search, facets, and exports. "
-        "Start with corpus_inventory or community_guide. "
-        "Set DATACITE_DATA_DIR to your extracted root (dois/updated_* or flat part_*.jsonl.gz + CSV). "
-        "Aggregate tools respect DATACITE_MAX_RECORDS; always surface truncated/scan_limit/coverage. "
-        "CSV index tools work without full JSONL. Export tools write under DATACITE_EXPORT_DIR or exports/."
+        "DataCite Librarian MCP — local, stream-first tools over monthly/public "
+        "datafiles for repository QA, funder compliance, index analytics, search, "
+        "facets, and exports. Start with corpus_inventory or community_guide. "
+        "Set DATACITE_DATA_DIR to your extracted root "
+        "(dois/updated_* or flat part_*.jsonl.gz + CSV). "
+        "Aggregate tools respect DATACITE_MAX_RECORDS; always surface "
+        "truncated/scan_limit/coverage. CSV index tools work without full JSONL. "
+        "Export tools write under DATACITE_EXPORT_DIR or exports/."
     ),
 )
 
@@ -76,7 +78,7 @@ See docs/DATAFILE_SCHEMA.md and community_guide tool.
 
 @mcp.tool
 def community_guide() -> dict[str, Any]:
-    """Persona-oriented guide: which tools to use for librarians, RDM, funders, ops, research, teaching."""
+    """Persona-oriented guide: which tools for librarians, RDM, funders, ops, research, teaching."""
     return T.tool_community_guide()
 
 
@@ -142,7 +144,12 @@ def diff_partitions_summary() -> dict[str, Any]:
     for p in discover_partitions(data_dir):
         parts = discover_jsonl_parts(p)
         partitions.append(
-            {"name": p.name, "path": str(p), "part_files": len(parts), "parts": [x.name for x in parts]}
+            {
+                "name": p.name,
+                "path": str(p),
+                "part_files": len(parts),
+                "parts": [x.name for x in parts],
+            }
         )
     return {
         "data_dir": str(data_dir),
@@ -174,7 +181,7 @@ def search_dois(
     max_results: int = 25,
     max_scan: int | None = None,
 ) -> dict[str, Any]:
-    """Search streamed JSONL metadata with rich filters (title/DOI/description, funder, subject, year, geo)."""
+    """Search streamed JSONL with filters (title/DOI/description, funder, subject, year, geo)."""
     return T.tool_search_dois(
         query=query,
         client_id=client_id,
@@ -229,7 +236,7 @@ def repository_health(
     max_records: int | None = None,
     max_sample_issues: int = 40,
 ) -> dict[str, Any]:
-    """Aggregate repository QA: completeness rates, issue frequencies, samples. Scope by client_id or prefix."""
+    """Aggregate repository QA: completeness, issues, samples. Scope by client_id or prefix."""
     return T.tool_repository_health(
         client_id=client_id,
         prefix=prefix,
@@ -280,8 +287,10 @@ def facets(
     max_records: int | None = None,
     top_n: int = 20,
 ) -> dict[str, Any]:
-    """Facet counts: resource types, years, publishers, languages, clients; rate % for ORCID/funder/license/etc."""
-    return T.tool_facets(client_id=client_id, prefix=prefix, max_records=max_records, top_n=top_n)
+    """Facet counts: types, years, publishers, languages, clients; ORCID/funder/license rates."""
+    return T.tool_facets(
+        client_id=client_id, prefix=prefix, max_records=max_records, top_n=top_n
+    )
 
 
 @mcp.tool
@@ -302,12 +311,15 @@ def index_summary(
     max_rows: int | None = None,
     top_n: int = 25,
 ) -> dict[str, Any]:
-    """Summarize a monthly CSV index (doi/state/client_id/updated): totals, states, top clients/prefixes.
+    """Summarize a monthly CSV index (doi/state/client_id/updated).
 
-    Works without any JSONL — ideal for large months when you only have the index file.
-    Pass month as YYYY-MM (e.g. 2026-06) or csv_path relative/absolute.
+    Returns totals, states, top clients/prefixes. Works without JSONL — ideal
+    for large months when you only have the index. Pass month as YYYY-MM
+    (e.g. 2026-06) or csv_path relative/absolute.
     """
-    return T.tool_index_summary(month=month, csv_path=csv_path, max_rows=max_rows, top_n=top_n)
+    return T.tool_index_summary(
+        month=month, csv_path=csv_path, max_rows=max_rows, top_n=top_n
+    )
 
 
 @mcp.tool
@@ -327,7 +339,7 @@ def coverage_report(
     max_metadata_scan: int | None = None,
     max_index_rows: int | None = None,
 ) -> dict[str, Any]:
-    """Compare CSV index DOIs vs DOIs present in loaded JSONL parts (coverage gap / what to download next)."""
+    """Compare CSV index DOIs vs DOIs in loaded JSONL (coverage gap / what to download next)."""
     return T.tool_coverage_report(
         month=month,
         csv_path=csv_path,
@@ -348,7 +360,7 @@ def export_health_issues(
     max_records: int | None = None,
     fmt: str = "csv",
 ) -> dict[str, Any]:
-    """Run repository_health and write issues to exports/ (csv or json). Path returned for follow-up."""
+    """Run repository_health and write issues to exports/ (csv or json). Returns path."""
     return T.tool_export_health_issues(
         client_id=client_id, prefix=prefix, max_records=max_records, fmt=fmt
     )

@@ -99,7 +99,11 @@ def build_corpus_inventory(data_dir: Path | str) -> dict[str, Any]:
     loose_csv = []
     for c in csv_indexes:
         # only those not already inside a partition row
-        if any(c.name == Path(r["csv_index"] or "").name for r in partition_rows if r.get("csv_index")):
+        if any(
+            c.name == Path(r["csv_index"] or "").name
+            for r in partition_rows
+            if r.get("csv_index")
+        ):
             if str(c.parent) != str(data_dir):
                 continue
         if c.parent == data_dir or not any(
@@ -131,11 +135,13 @@ def build_corpus_inventory(data_dir: Path | str) -> dict[str, Any]:
         )
     if loose_csv and not partitions:
         notes.append(
-            f"{len(loose_csv)} CSV index(es) at root — use index_* tools without downloading all JSONL."
+            f"{len(loose_csv)} CSV index(es) at root — use index_* tools "
+            "without downloading all JSONL."
         )
     if jsonl_parts and csv_indexes:
         notes.append(
-            "Both metadata (JSONL) and indexes (CSV) present; index may cover more DOIs than loaded parts."
+            "Both metadata (JSONL) and indexes (CSV) present; "
+            "index may cover more DOIs than loaded parts."
         )
 
     return {

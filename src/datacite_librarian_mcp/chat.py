@@ -194,7 +194,14 @@ def answer(question: str) -> str:
 
     if any(
         p in low
-        for p in ("corpus status", "what data", "which data", "data dir", "datafile", "where is the data")
+        for p in (
+            "corpus status",
+            "what data",
+            "which data",
+            "data dir",
+            "datafile",
+            "where is the data",
+        )
     ):
         return _pretty(srv.corpus_status())
 
@@ -204,7 +211,11 @@ def answer(question: str) -> str:
     if "partition" in low:
         return _pretty(srv.diff_partitions_summary())
 
-    if re.search(r"\blist\b.*\b(client|repositor)", low) or low in {"clients", "repositories", "list clients"}:
+    if re.search(r"\blist\b.*\b(client|repositor)", low) or low in {
+        "clients",
+        "repositories",
+        "list clients",
+    }:
         clients = srv.list_clients()
         lines = [f"Repositories ({len(clients.get('clients', []))}):"]
         for item in clients.get("clients", [])[:25]:
@@ -267,7 +278,12 @@ def answer(question: str) -> str:
         for tname in ("Dataset", "Software", "Preprint", "Text", "JournalArticle"):
             if tname.lower() in term.lower():
                 rtg = tname
-        result = srv.search_dois(query=term or None, resource_type_general=rtg, has_funder=has_funder, max_results=8)
+        result = srv.search_dois(
+            query=term or None,
+            resource_type_general=rtg,
+            has_funder=has_funder,
+            max_results=8,
+        )
         lines = [
             f"Search returned **{result.get('returned', 0)}** hits "
             f"(scanned {result.get('scanned')}, truncated={result.get('truncated')}).",

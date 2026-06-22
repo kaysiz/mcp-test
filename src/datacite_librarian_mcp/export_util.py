@@ -15,7 +15,12 @@ def _stamp() -> str:
     return datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
 
 
-def export_json(data: Any, *, filename_prefix: str, data_dir: Path | str | None = None) -> dict[str, Any]:
+def export_json(
+    data: Any,
+    *,
+    filename_prefix: str,
+    data_dir: Path | str | None = None,
+) -> dict[str, Any]:
     out_dir = resolve_export_dir(data_dir)
     path = out_dir / f"{filename_prefix}_{_stamp()}.json"
     with path.open("w", encoding="utf-8") as fh:
