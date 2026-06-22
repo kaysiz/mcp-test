@@ -1,0 +1,9 @@
+doi,state,client_id,updated
+10.5281/zenodo.100001,findable,cern.zenodo,2025-11-15T10:00:00Z
+10.5281/zenodo.100002,findable,cern.zenodo,2025-11-15T10:00:00Z
+10.5281/zenodo.100003,findable,cern.zenodo,2025-11-15T10:00:00Z
+10.1234/example.dataset.42,findable,exuni.library,2025-11-15T10:00:00Z
+10.1234/example.bad.1,findable,exuni.library,2025-11-15T10:00:00Z
+10.5281/zenodo.100004,findable,cern.zenodo,2025-11-15T10:00:00Z
+10.1234/example.text.7,findable,exuni.library,2025-11-15T10:00:00Z
+10.5281/zenodo.100005,findable,cern.zenodo,2025-11-15T10:00:00Z

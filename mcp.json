@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "datacite-librarian": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/Users/kaysiz/dev/oss/xai-hard-projects/d-mcp",
+        "datacite-librarian-mcp"
+      ],
+      "env": {
+        "DATACITE_DATA_DIR": "/Users/kaysiz/dev/oss/xai-hard-projects/d-mcp",
+        "DATACITE_MAX_RECORDS": "15000"
+      }
+    }
+  }
+}
