@@ -1,29 +1,23 @@
-# Merge Battlefield — ALPHA SIDE
+# Merge Battlefield — MERGED RESOLUTION
 
-This document exists solely to create a painful merge conflict with Omega.
+Both Alpha and Omega branches were merged. This is the negotiated (messy) outcome.
 
-## Alpha decisions (NON-NEGOTIABLE)
+## Decisions (HYBRID)
 
-1. Export format: **CSV primary**, jsonl/parquet secondary
-2. Config root: `/data/alpha/datacite` (+ `s3://alpha-datacite/...`)
-3. Tool prefix: `alpha_*`
-4. PII policy: **BEST_EFFORT_REDACT** (never hard-fail questions)
-5. Package name: `alpha-datacite-librarian-mcp`
-6. CI job name: `alpha-gate`
-7. Default mode: **RELAXED**
-8. Python: **3.12 only**
+| Topic | Omega wanted | Alpha wanted | Merged |
+|---|---|---|---|
+| Export | `.omega.jsonl` only | CSV primary | Both via `EXPORT_FORMAT` / team tools |
+| Data root | `/var/omega/datacite` | `/data/alpha/datacite` | Both env vars supported |
+| Tools | `omega_*` | `alpha_*` | **Both** registered on server |
+| PII | PII_ZERO hard fail | BEST_EFFORT_REDACT | Runtime team selects; default `both` warns |
+| Package | `omega-datacite-librarian-mcp` | `alpha-datacite-librarian-mcp` | `datacite-librarian-mcp` |
+| CI | `omega-gate` | `alpha-gate` | **Both jobs** in `merged-ci` |
+| Python | 3.11+ | 3.12 only | `>=3.11` with alpha job on 3.12 |
 
-## Handler map (1–200)
+## Handlers
 
-Every `alpha_handler_NNN` is authoritative. Omega handlers must be deleted.
-
-## Why Omega is wrong
-
-- Omega uses `/var/omega/datacite` — ops cannot mount easily
-- Omega locks export to `.omega.jsonl` — analysts need CSV
-- Omega renames everything `omega_*` — breaks existing agents
-- Omega LOCKDOWN mode rejects valid fuzzy DOI traffic
+`merge_battlefield.py` now contains **both** `omega_handler_NNN` and `alpha_handler_NNN` for N=1..200.
 
 ## Rollback plan
 
-Alpha is the future. Omega branch should be abandoned.
+Re-split into `RUNTIME_TEAM=omega` or `RUNTIME_TEAM=alpha` rather than reverting history.
