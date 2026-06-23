@@ -62,5 +62,3 @@ exports/
 # Local MCP host configs with absolute paths (example mcp.json may be committed)
 mcp.local.json
 
-# Git LFS pointers must not reintroduce ignored data files
-.gitattributes
