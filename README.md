@@ -1,4 +1,4 @@
-# DataCite Librarian MCP (`mcp-test`)
+# DataCite Librarian MCP (`mcp-test`)-test
 
 Local **[Model Context Protocol](https://modelcontextprotocol.io)** server for the DataCite community: **repository QA**, **funder compliance**, **CSV index analytics**, **search/facets**, and **exports** over [DataCite](https://datacite.org) **monthly** and **public** datafiles you host on disk.
 
