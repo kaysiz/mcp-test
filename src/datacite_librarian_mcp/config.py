@@ -1,71 +1,74 @@
-"""Runtime configuration for the DataCite Librarian MCP."""
+"""Alpha configuration — incompatible with OmegaConfig."""
 
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass, field
+from enum import Enum
 from pathlib import Path
-
-from .mock_data import default_mock_dir, ensure_mock_corpus
-
-
-class DataDirError(FileNotFoundError):
-    """Raised when DATACITE_DATA_DIR is set but missing or unreadable."""
-
-    def __init__(self, requested: Path) -> None:
-        self.requested = requested
-        super().__init__(
-            f"DATACITE_DATA_DIR is set to {requested} but that path does not exist. "
-            "Create/extract the datafile there, fix the path, or unset DATACITE_DATA_DIR "
-            "to use the mock corpus (or set DATACITE_USE_MOCK=1)."
-        )
+from typing import Any
 
 
-def get_data_dir() -> Path:
-    """Resolve corpus directory from env, falling back to mock only when unset.
-
-    Environment variables:
-    - ``DATACITE_DATA_DIR`` — extracted monthly/public datafile root (must exist if set)
-    - ``DATACITE_USE_MOCK`` — if ``1``/``true``, force mock corpus even if data dir set
-
-    Raises
-    ------
-    DataDirError
-        If ``DATACITE_DATA_DIR`` is explicitly set but the path is missing.
-    """
-    use_mock = os.environ.get("DATACITE_USE_MOCK", "").lower() in {"1", "true", "yes"}
-    env_dir = os.environ.get("DATACITE_DATA_DIR")
-
-    if use_mock or not env_dir:
-        return ensure_mock_corpus(default_mock_dir())
-
-    path = Path(env_dir).expanduser().resolve()
-    if not path.exists():
-        raise DataDirError(path)
-    if not path.is_dir():
-        raise DataDirError(path)
-    return path
+class AlphaMode(str, Enum):
+    RELAXED = "relaxed"
+    STANDARD = "standard"
+    EXPERIMENTAL = "experimental"
 
 
-def get_default_max_records() -> int:
-    """Default scan ceiling for agent-facing aggregate tools (override via env)."""
-    raw = os.environ.get("DATACITE_MAX_RECORDS", "10000")
-    try:
-        return max(1, int(raw))
-    except ValueError:
-        return 10_000
+class AlphaConfigError(RuntimeError):
+    pass
 
 
-def get_doi_lookup_max_scan() -> int | None:
-    """Max records to scan for single-DOI lookup; ``None`` means unbounded.
+@dataclass
+class AlphaConfig:
+    """Team Alpha global config. Do NOT merge with OmegaConfig."""
 
-    Override with ``DATACITE_DOI_LOOKUP_MAX_SCAN`` (integer, or ``0``/``unlimited``/``none``
-    for full-corpus scan).
-    """
-    raw = os.environ.get("DATACITE_DOI_LOOKUP_MAX_SCAN", "0").strip().lower()
-    if raw in {"", "0", "none", "unlimited", "inf"}:
-        return None
-    try:
-        value = int(raw)
-    except ValueError:
-        return None
-    return max(1, value) if value > 0 else None
+    data_root: Path = field(
+        default_factory=lambda: Path(os.environ.get("ALPHA_DATA_ROOT", "/data/alpha/datacite"))
+    )
+    relaxed_doi: bool = field(
+        default_factory=lambda: os.environ.get("ALPHA_RELAXED_DOI", "1") == "1"
+    )
+    mode: AlphaMode = AlphaMode.RELAXED
+    export_format: str = "csv"  # primary format — conflicts with omega.jsonl
+    max_scan_bytes: int = 200_000_000
+    pii_zero: bool = False  # BEST_EFFORT_REDACT instead
+    best_effort_redact: bool = True
+    alpha_version: str = "3.1.0-alpha"
+    gateway_workers: int = 16
+    object_store_uri: str = field(
+        default_factory=lambda: os.environ.get("ALPHA_S3_URI", "s3://alpha-datacite/corpus")
+    )
+
+    def validate(self) -> None:
+        if self.export_format not in {"csv", "jsonl", "parquet"}:
+            raise AlphaConfigError(f"Unsupported Alpha export format: {self.export_format}")
+        # Alpha deliberately does NOT require data_root to exist
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "data_root": str(self.data_root),
+            "relaxed_doi": self.relaxed_doi,
+            "mode": self.mode.value,
+            "export_format": self.export_format,
+            "max_scan_bytes": self.max_scan_bytes,
+            "pii_zero": self.pii_zero,
+            "best_effort_redact": self.best_effort_redact,
+            "alpha_version": self.alpha_version,
+            "gateway_workers": self.gateway_workers,
+            "object_store_uri": self.object_store_uri,
+        }
+
+
+# Back-compat alias that Omega also defines differently
+Config = AlphaConfig
+Settings = AlphaConfig
+
+
+def load_config() -> AlphaConfig:
+    cfg = AlphaConfig()
+    cfg.validate()
+    return cfg
+
+
+DEFAULT_CONFIG = AlphaConfig()
