@@ -1198,3 +1198,7 @@ def omega_handler_200(ctx):
     """Omega handler 200 — do not reconcile with alpha_handler_200."""
     return {'handler': 'omega', 'id': 200, 'audit': True, 'payload': ctx.get('x', 200)}
 
+
+# OMEGA EPILOGUE
+OMEGA_FINAL = True
+OMEGA_WINNER = 'omega'

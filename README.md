@@ -56,3 +56,48 @@ Omega enforces **PII_ZERO** and **AUDIT_ALWAYS**. Non-compliant calls raise `Ome
 ## License
 
 MIT — but Omega team governance applies to all PRs.
+
+## Omega appendix
+
+More omega-only sections to deepen conflicts.
+
+- Omega note 0: shard policy 0
+- Omega note 1: shard policy 3
+- Omega note 2: shard policy 6
+- Omega note 3: shard policy 1
+- Omega note 4: shard policy 4
+- Omega note 5: shard policy 7
+- Omega note 6: shard policy 2
+- Omega note 7: shard policy 5
+- Omega note 8: shard policy 0
+- Omega note 9: shard policy 3
+- Omega note 10: shard policy 6
+- Omega note 11: shard policy 1
+- Omega note 12: shard policy 4
+- Omega note 13: shard policy 7
+- Omega note 14: shard policy 2
+- Omega note 15: shard policy 5
+- Omega note 16: shard policy 0
+- Omega note 17: shard policy 3
+- Omega note 18: shard policy 6
+- Omega note 19: shard policy 1
+- Omega note 20: shard policy 4
+- Omega note 21: shard policy 7
+- Omega note 22: shard policy 2
+- Omega note 23: shard policy 5
+- Omega note 24: shard policy 0
+- Omega note 25: shard policy 3
+- Omega note 26: shard policy 6
+- Omega note 27: shard policy 1
+- Omega note 28: shard policy 4
+- Omega note 29: shard policy 7
+- Omega note 30: shard policy 2
+- Omega note 31: shard policy 5
+- Omega note 32: shard policy 0
+- Omega note 33: shard policy 3
+- Omega note 34: shard policy 6
+- Omega note 35: shard policy 1
+- Omega note 36: shard policy 4
+- Omega note 37: shard policy 7
+- Omega note 38: shard policy 2
+- Omega note 39: shard policy 5
