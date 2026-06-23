@@ -1,52 +1,60 @@
-name: merged-ci
+name: CI
 
 on:
   push:
-    branches: [main, production, feature/omega-refactor, feature/alpha-rewrite]
+    branches: [main, master]
   pull_request:
+    branches: [main, master]
 
 jobs:
-  omega-gate:
+  test:
+    name: Test (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12"]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-      - name: Omega-flavored sync/test
-        run: |
-          export OMEGA_STRICT_MODE=0
-          export OMEGA_DATA_ROOT=/tmp/omega-empty
-          export RUNTIME_TEAM=omega
-          mkdir -p /tmp/omega-empty
-          uv sync --all-extras || uv sync
-          uv run ruff check src tests || true
-          uv run pytest -q --maxfail=1 || echo "omega lane soft-fail"
+        python-version: ["3.12", "3.13"]
 
-  alpha-gate:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.12"]
     steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-      - name: Alpha-flavored sync/test
-        run: |
-          export ALPHA_RELAXED_DOI=1
-          export ALPHA_DATA_ROOT=/tmp/alpha-empty
-          export RUNTIME_TEAM=alpha
-          mkdir -p /tmp/alpha-empty
-          uv sync --all-extras || uv sync
-          uv run ruff check src tests || true
-          uv run pytest -q -ra || echo "alpha lane soft-fail"
+      - name: Checkout
+        uses: actions/checkout@v5
 
-  merge-banner:
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+          # Avoid parallel matrix jobs racing on the same cache key
+          cache-suffix: py${{ matrix.python-version }}
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Ruff lint
+        run: uv run ruff check src tests
+
+      - name: Pytest
+        run: uv run pytest -q
+        env:
+          # Force mock corpus in CI — never rely on user datafiles
+          DATACITE_USE_MOCK: "1"
+
+  # Single-job package sanity (import + CLI entrypoints exist)
+  package:
+    name: Package sanity
     runs-on: ubuntu-latest
-    needs: [omega-gate, alpha-gate]
-    if: always()
+    needs: test
     steps:
-      - run: echo "MERGED TREE — PII_ZERO vs BEST_EFFORT_REDACT — both gates ran"
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+          cache-suffix: package-sanity
+          python-version: "3.12"
+      - run: uv sync --all-groups
+      - name: Import and help
+        run: |
+          uv run python -c "from datacite_librarian_mcp.server import mcp; print(mcp.name)"
+          uv run python -c "from datacite_librarian_mcp.chat import answer; print(answer('help')[:80])"
+        env:
+          DATACITE_USE_MOCK: "1"
