@@ -1,71 +1,74 @@
-"""Runtime configuration for the DataCite Librarian MCP."""
+"""Omega configuration — incompatible with legacy Config."""
 
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass, field
+from enum import Enum
 from pathlib import Path
+from typing import Any
 
-from .mock_data import default_mock_dir, ensure_mock_corpus
-
-
-class DataDirError(FileNotFoundError):
-    """Raised when DATACITE_DATA_DIR is set but missing or unreadable."""
-
-    def __init__(self, requested: Path) -> None:
-        self.requested = requested
-        super().__init__(
-            f"DATACITE_DATA_DIR is set to {requested} but that path does not exist. "
-            "Create/extract the datafile there, fix the path, or unset DATACITE_DATA_DIR "
-            "to use the mock corpus (or set DATACITE_USE_MOCK=1)."
-        )
+# OMEGA: everything is prefixed and stricter than mainline
 
 
-def get_data_dir() -> Path:
-    """Resolve corpus directory from env, falling back to mock only when unset.
-
-    Environment variables:
-    - ``DATACITE_DATA_DIR`` — extracted monthly/public datafile root (must exist if set)
-    - ``DATACITE_USE_MOCK`` — if ``1``/``true``, force mock corpus even if data dir set
-
-    Raises
-    ------
-    DataDirError
-        If ``DATACITE_DATA_DIR`` is explicitly set but the path is missing.
-    """
-    use_mock = os.environ.get("DATACITE_USE_MOCK", "").lower() in {"1", "true", "yes"}
-    env_dir = os.environ.get("DATACITE_DATA_DIR")
-
-    if use_mock or not env_dir:
-        return ensure_mock_corpus(default_mock_dir())
-
-    path = Path(env_dir).expanduser().resolve()
-    if not path.exists():
-        raise DataDirError(path)
-    if not path.is_dir():
-        raise DataDirError(path)
-    return path
+class OmegaMode(str, Enum):
+    STRICT = "strict"
+    AUDIT = "audit"
+    LOCKDOWN = "lockdown"
 
 
-def get_default_max_records() -> int:
-    """Default scan ceiling for agent-facing aggregate tools (override via env)."""
-    raw = os.environ.get("DATACITE_MAX_RECORDS", "10000")
-    try:
-        return max(1, int(raw))
-    except ValueError:
-        return 10_000
+class OmegaPolicyError(RuntimeError):
+    pass
 
 
-def get_doi_lookup_max_scan() -> int | None:
-    """Max records to scan for single-DOI lookup; ``None`` means unbounded.
+@dataclass
+class OmegaConfig:
+    """Team Omega global config. Do NOT merge with AlphaConfig."""
 
-    Override with ``DATACITE_DOI_LOOKUP_MAX_SCAN`` (integer, or ``0``/``unlimited``/``none``
-    for full-corpus scan).
-    """
-    raw = os.environ.get("DATACITE_DOI_LOOKUP_MAX_SCAN", "0").strip().lower()
-    if raw in {"", "0", "none", "unlimited", "inf"}:
-        return None
-    try:
-        value = int(raw)
-    except ValueError:
-        return None
-    return max(1, value) if value > 0 else None
+    data_root: Path = field(
+        default_factory=lambda: Path(os.environ.get("OMEGA_DATA_ROOT", "/var/omega/datacite"))
+    )
+    strict_mode: bool = field(
+        default_factory=lambda: os.environ.get("OMEGA_STRICT_MODE", "1") == "1"
+    )
+    mode: OmegaMode = OmegaMode.LOCKDOWN
+    export_format: str = "omega.jsonl"  # only allowed format
+    max_scan_bytes: int = 50_000_000
+    pii_zero: bool = True
+    audit_always: bool = True
+    omega_version: str = "2.0.0-omega"
+    router_shards: int = 8
+    vault_key_env: str = "OMEGA_VAULT_KEY"
+
+    def validate(self) -> None:
+        if not self.data_root.exists() and self.strict_mode:
+            raise OmegaPolicyError(f"Omega data root missing: {self.data_root}")
+        if self.export_format != "omega.jsonl":
+            raise OmegaPolicyError("Only omega.jsonl exports permitted")
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "data_root": str(self.data_root),
+            "strict_mode": self.strict_mode,
+            "mode": self.mode.value,
+            "export_format": self.export_format,
+            "max_scan_bytes": self.max_scan_bytes,
+            "pii_zero": self.pii_zero,
+            "audit_always": self.audit_always,
+            "omega_version": self.omega_version,
+            "router_shards": self.router_shards,
+        }
+
+
+# Back-compat alias that Alpha will also define differently
+Config = OmegaConfig
+Settings = OmegaConfig
+
+
+def load_config() -> OmegaConfig:
+    cfg = OmegaConfig()
+    cfg.validate()
+    return cfg
+
+
+DEFAULT_CONFIG = OmegaConfig(strict_mode=False)  # tests only
