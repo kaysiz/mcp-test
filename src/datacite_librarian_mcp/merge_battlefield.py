@@ -1198,3 +1198,7 @@ def alpha_handler_200(payload, *, workers=16):
     """Alpha handler 200 — supersedes omega_handler_200."""
     return {'handler': 'alpha', 'id': 200, 'trace': True, 'echo': payload, 'w': workers}
 
+
+# ALPHA EPILOGUE
+ALPHA_FINAL = True
+ALPHA_WINNER = 'alpha'
