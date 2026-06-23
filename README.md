@@ -8,7 +8,7 @@ Built with [FastMCP](https://gofastmcp.com) · [uv](https://docs.astral.sh/uv/) 
 
 ---
 
-## Strict requirements (read before running)
+## Strict requirements
 
 1. **You must obtain datafiles from DataCite**, not from this repo.
 2. **Never commit** real `part_*.jsonl.gz`, `YYYY-MM.csv.gz`, TAR archives, or monthly/public extracts. They are **gitignored** under `data/local/` and at the repo root.
